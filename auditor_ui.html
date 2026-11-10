@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Document Auditor</title>
+<style>
+  :root {
+    --ink: #1b2430; --muted: #5d6b7c; --line: #d5dce4; --paper: #ffffff; --bg: #f5f7f9;
+    --accent: #1f5f5b; --accent-hover: #174a47; --accent-bg: #e6f1f0; --bad: #a3261f; --bad-bg: #fbe9e7;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 16px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 16px 64px; }
+  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 8px; }
+  h2 { font-size: 18px; margin: 36px 0 12px; }
+  p { margin: 0; }
+  .lead { color: var(--muted); max-width: 60ch; }
+  .health { margin-top: 20px; padding: 10px 14px; font-size: 14px; background: var(--accent-bg); color: var(--accent); }
+  .health.bad { background: var(--bad-bg); color: var(--bad); }
+  .drop { display: block; margin-top: 20px; padding: 36px 20px; text-align: center; cursor: pointer;
+          background: var(--paper); border: 2px dashed var(--line); }
+  .drop:hover, .drop.over, .drop:focus-within { border-color: var(--accent); }
+  .drop strong { display: block; font-size: 17px; }
+  .drop span { color: var(--muted); font-size: 14px; }
+  .drop input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .chosen { list-style: none; margin: 12px 0 0; padding: 0; }
+  .chosen li { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 6px 12px;
+               background: var(--paper); border: 1px solid var(--line); border-top: 0; overflow-wrap: anywhere; }
+  .chosen li:first-child { border-top: 1px solid var(--line); }
+  button, .button { font: inherit; font-weight: 600; cursor: pointer; border-radius: 3px; text-decoration: none;
+                    display: inline-block; padding: 9px 18px; border: 1px solid var(--accent);
+                    background: var(--accent); color: #fff; }
+  button:hover, .button:hover { background: var(--accent-hover); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.quiet, .button.quiet { background: transparent; color: var(--accent); }
+  button.quiet:hover, .button.quiet:hover { background: var(--accent-bg); }
+  button.remove { padding: 2px 8px; font-weight: 400; font-size: 14px; border: 0; background: none; color: var(--muted); }
+  button.remove:hover { color: var(--bad); background: none; }
+  .start { margin-top: 16px; }
+  .error { margin-top: 12px; color: var(--bad); }
+  .audit { padding: 16px; margin-bottom: 10px; background: var(--paper); border: 1px solid var(--line); }
+  .audit .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; }
+  .audit .result { font-weight: 600; }
+  .audit .meta { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+  .audit .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .audit .failed { color: var(--bad); margin-top: 6px; }
+  progress { width: 100%; height: 8px; margin-top: 10px; accent-color: var(--accent); }
+  .empty { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Document Auditor</h1>
+  <p class="lead">Upload a company's policies, procedures or contracts. You'll get a report of the contradictions between them, with exact quotes and page numbers.</p>
+  <p class="health" id="health" role="status">Checking the model...</p>
+
+  <label class="drop" id="drop">
+    <input type="file" id="picker" multiple accept=".pdf,.docx,.txt">
+    <strong>Drag files here or click to choose</strong>
+    <span>PDF, DOCX or TXT, at least two files</span>
+  </label>
+  <ul class="chosen" id="chosen"></ul>
+  <div class="start"><button id="start" disabled>Start audit</button></div>
+  <p class="error" id="error" role="alert" hidden></p>
+
+  <h2>Audits</h2>
+  <div id="audits"><p class="empty">No audits yet.</p></div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+let chosen = [];
+let polling = null;
+
+function el(tag, props = {}, ...children) {
+  const node = Object.assign(document.createElement(tag), props);
+  node.append(...children);
+  return node;
+}
+
+function showError(message) {
+  $("error").textContent = message || "";
+  $("error").hidden = !message;
+}
+
+function addFiles(files) {
+  for (const file of files) {
+    if (!chosen.some(f => f.name === file.name)) chosen.push(file);
+  }
+  renderChosen();
+}
+
+function renderChosen() {
+  $("chosen").replaceChildren(...chosen.map(file => {
+    const remove = el("button", { className: "remove", type: "button", textContent: "Remove" });
+    remove.setAttribute("aria-label", "Remove " + file.name);
+    remove.onclick = () => { chosen = chosen.filter(f => f !== file); renderChosen(); };
+    return el("li", {}, el("span", { textContent: file.name }), remove);
+  }));
+  $("start").disabled = chosen.length < 2;
+}
+
+async function errorMessage(response) {
+  try { return (await response.json()).detail; } catch { return "The server returned an error."; }
+}
+
+async function start() {
+  showError("");
+  $("start").disabled = true;
+  const form = new FormData();
+  chosen.forEach(file => form.append("files", file));
+  try {
+    const response = await fetch("/api/audits", { method: "POST", body: form });
+    if (!response.ok) {
+      showError(await errorMessage(response));
+      $("start").disabled = false;
+      return;
+    }
+    chosen = [];
+    $("picker").value = "";
+    renderChosen();
+    refresh();
+  } catch {
+    showError("Couldn't connect to the app.");
+    $("start").disabled = false;
+  }
+}
+
+function resultText(audit) {
+  const main = audit.findings === 0 ? "No confirmed contradictions" : "Contradictions found: " + audit.findings;
+  return audit.uncertain ? `${main}, to review: ${audit.uncertain}` : main;
+}
+
+function renderAudit(audit) {
+  const when = new Date(audit.created).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+  const box = el("div", { className: "audit" });
+  const active = audit.status === "queued" || audit.status === "running";
+  const title = active ? audit.stage : audit.status === "done" ? resultText(audit) : "Audit failed";
+  box.append(el("div", { className: "top" },
+    el("span", { className: "result", textContent: title }),
+    el("span", { className: "meta", textContent: when })));
+  box.append(el("div", { className: "meta", textContent: audit.file_names.join(", ") }));
+  if (active) box.append(el("progress", { max: 1, value: audit.progress }));
+  if (audit.status === "failed") box.append(el("div", { className: "failed", textContent: audit.error }));
+  if (!active) {
+    const actions = el("div", { className: "actions" });
+    if (audit.status === "done") {
+      actions.append(
+        el("a", { className: "button", href: `/audits/${audit.id}/report`, target: "_blank", rel: "noopener", textContent: "Open report" }),
+        el("a", { className: "button quiet", href: `/audits/${audit.id}/report.pdf`, textContent: "Download PDF" }));
+    }
+    const remove = el("button", { className: "quiet", type: "button", textContent: "Delete" });
+    remove.onclick = async () => {
+      if (!confirm("Delete this audit and its report?")) return;
+      await fetch(`/api/audits/${audit.id}`, { method: "DELETE" });
+      refresh();
+    };
+    actions.append(remove);
+    box.append(actions);
+  }
+  return box;
+}
+
+async function refresh() {
+  clearTimeout(polling);
+  try {
+    const audits = await (await fetch("/api/audits")).json();
+    $("audits").replaceChildren(...(audits.length
+      ? audits.map(renderAudit)
+      : [el("p", { className: "empty", textContent: "No audits yet." })]));
+    if (audits.some(a => a.status === "queued" || a.status === "running")) {
+      polling = setTimeout(refresh, 1500);
+    }
+  } catch {
+    polling = setTimeout(refresh, 5000);
+  }
+}
+
+async function checkHealth() {
+  try {
+    const health = await (await fetch("/api/health")).json();
+    $("health").textContent = health.message;
+    $("health").classList.toggle("bad", !health.ok);
+  } catch {
+    $("health").textContent = "Couldn't check the model.";
+    $("health").classList.add("bad");
+  }
+}
+
+$("picker").onchange = e => addFiles(e.target.files);
+$("start").onclick = start;
+const drop = $("drop");
+["dragenter", "dragover"].forEach(name => drop.addEventListener(name, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(name => drop.addEventListener(name, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => addFiles(e.dataTransfer.files));
+
+checkHealth();
+refresh();
+</script>
+</body>
+</html>

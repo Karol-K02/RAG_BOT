@@ -1,0 +1,19 @@
+Employee Handbook - Northwind Supplies Ltd.
+Version effective from 1 March 2025
+
+Section 1. Working hours
+Employees work Monday to Friday. Core office hours are 9:00-17:00.
+
+Section 2. Annual leave
+Employees on an employment contract receive 25 days of paid leave per year.
+Leave requests must be submitted in the HR portal at least 14 days in advance.
+
+Section 3. Remote work
+After the probation period, employees may work remotely up to 2 days per week, subject to their manager's approval.
+
+Section 4. Business expenses
+Expense reports must be submitted within 30 days of the end of the trip, together with original receipts.
+
+Section 5. Accounts and devices
+Passwords for company accounts must be changed every 120 days.
+A lost or stolen company device must be reported to the IT helpdesk within 24 hours.

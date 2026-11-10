@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+venv/
+
+# Local settings
+.env
+
+# Your own documents stay private - only files named sample_* are published
+docs/*
+!docs/sample_*
+
+# Audit reports quote customer documents
+audits/
+
+# Public pages of real shops, used only as a local test set
+tests/real_shops/
+
+# Saved model answers from test runs (contain document fragments)
+tests/llm_cache/
+
+# Personal launcher with a different local model, not part of the project
+docchat_qwen3-8b.bat
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

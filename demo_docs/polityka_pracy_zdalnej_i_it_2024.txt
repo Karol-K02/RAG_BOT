@@ -1,0 +1,15 @@
+Polityka pracy zdalnej i bezpieczeństwa IT
+Przykładowa Firma Sp. z o.o., wersja z 15 stycznia 2024 r.
+
+1. Praca zdalna
+Pracownik po okresie próbnym może wykonywać pracę zdalnie do 3 dni w tygodniu. Plan pracy zdalnej uzgadnia z przełożonym.
+Pracując zdalnie, pracownik korzysta wyłącznie z firmowego VPN.
+
+2. Hasła
+Hasła do kont firmowych należy zmieniać co 90 dni. Hasło musi mieć co najmniej 12 znaków.
+
+3. Sprzęt po zakończeniu współpracy
+Laptop służbowy należy odesłać do działu IT w terminie 14 dni od zakończenia zatrudnienia. Koszt przesyłki pokrywa firma.
+
+4. Zgłaszanie incydentów
+Każdy incydent bezpieczeństwa należy zgłosić do działu IT w ciągu 24 godzin od jego wykrycia.

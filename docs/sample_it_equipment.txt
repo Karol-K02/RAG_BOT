@@ -1,0 +1,9 @@
+IT Equipment Rules (Example Company)
+
+Every new employee receives a laptop and, if their role requires it, a company phone.
+
+Company equipment must be returned to the IT department on the last day of work. The employee is responsible for lost or damaged equipment according to their contract.
+
+Installing unapproved software on company laptops is not allowed. Requests for new software are submitted through the IT helpdesk and are usually processed within 3 working days.
+
+Lost or stolen devices must be reported to the IT helpdesk within 24 hours.

@@ -1,0 +1,9 @@
+Vacation Policy (Example Company, version 2024)
+
+Employees on an employment contract are entitled to 20 days of paid vacation per year if their total work experience is less than 10 years, and 26 days if it is 10 years or more.
+
+Vacation requests must be submitted in the HR system at least one week in advance and approved by the direct manager.
+
+Unused vacation days can be carried over to the next year and must be used by 30 September.
+
+Contractors working under a B2B agreement are not covered by the Labour Code and do not receive paid vacation. Days of unavailability are agreed in the contract.
